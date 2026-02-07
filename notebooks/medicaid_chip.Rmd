@@ -1,0 +1,84 @@
+---
+title: "Medicaid and Chip analysis"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+```{r}
+medicaid_chip <- read_csv("../data/medicaid_chip.csv")
+```
+
+
+```{r}
+medicaid_chip |> 
+  group_by(year) |> 
+  summarise(total_new_applications = sum(total_applications_for_financial_assistance_submitted_at_state_level,na.rm= TRUE),total_eligibility_determination = sum(total_medicaid_and_chip_determinations, na.rm=TRUE), total_enrollments= sum(total_medicaid_and_chip_enrollment, na.rm=TRUE)) |>
+  ggplot(mapping=aes(x=year))+
+  geom_line(aes(y=total_new_applications, color="total number of new applications")) +
+  geom_line(aes(y=total_eligibility_determination, color="total number of  eligibility determinations")) + 
+  #geom_line(aes(y=total_enrollments, color="total number of enrollments"))+
+ labs(
+    x = "year",
+    y = "Total Number",
+    title = "Total New Applications/Determinations by year"
+  ) 
+                     
+```
+
+```{r}
+
+medicaid_chip <- medicaid_chip |> 
+  mutate(
+ time_phase =  case_when(
+    reporting_period < ymd("2020-03-01")  ~ "Pre Covid",
+    between(ymd(reporting_period), ymd("2020-03-01"), ymd("2023-05-01")) ~ "Covid period",
+    reporting_period > ymd("2023-05-01") ~ "Post Covid"
+  ) 
+) 
+
+sum(is.na(medicaid_chip$time_phase))
+
+```
+
+```{r}
+glimpse(medicaid_chip)
+```
+
+
+```{r}
+medicaid_chip |> 
+  group_by(time_phase) |> 
+  summarise(total_new_applications = mean(total_applications_for_financial_assistance_submitted_at_state_level,na.rm= TRUE)) |>
+  arrange(time_phase) |> 
+  mutate(time_phase = factor(time_phase, levels = c("Pre Covid", "Covid period", "Post Covid"), ordered = TRUE))  |> 
+  ggplot(mapping=aes(x= time_phase,y=total_new_applications, group=1))+
+  geom_line(color = "blue") +
+  labs(
+    x = "Time Phase",
+    y = "Total New Applications",
+    title = "Total New Medicaid/CHIP Applications by Time Phase"
+  ) 
+```
+
+
+#Check the processing times
+```{r}
+medicaid_chip |> 
+  group_by(time_phase) |> 
+  summarise(processing_times = sum(total_medicaid_and_chip_determinations_processed_in_less_than_24_hours,na.rm= TRUE)) |>
+  arrange(time_phase) |> 
+  mutate(time_phase = factor(time_phase, levels = c("Pre Covid", "Covid period", "Post Covid"), ordered = TRUE))  |> 
+  ggplot(mapping=aes(x= time_phase,y=processing_times))+
+  geom_col(color = "blue") +
+  labs(
+    x = "Time Phase",
+    y = "processing times",
+    title = "total medicaid and chip determinations processed in less than 24 hours"
+  ) 
+```
+
