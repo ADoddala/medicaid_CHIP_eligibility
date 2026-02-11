@@ -5,8 +5,10 @@ output: html_notebook
 
 
 ```{r}
+install.packages("scales")
 library(tidyverse)
 library(lubridate)
+library(scales)
 ```
 
 ```{r}
@@ -14,21 +16,97 @@ medicaid_chip <- read_csv("../data/medicaid_chip.csv")
 ```
 
 
+#Analyze the NAtional Average Medicaid/CHIP Applications , Determinations, and Enrollments by Year
+
 ```{r}
+medicaid_chip |>
+  group_by(year, reporting_period) |>  # sum across states for each month (getting national monthly totals)
+  summarise(
+    monthly_new_applications = sum(total_applications_for_financial_assistance_submitted_at_state_level, na.rm=TRUE),
+    monthly_eligibility_determination = sum(total_medicaid_and_chip_determinations, na.rm=TRUE),
+    monthly_enrollments = sum(total_medicaid_and_chip_enrollment, na.rm=TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(year) |>   #average over months (getting the national average for the year), it gives avf national estimates not just averages of state-level data points
+  summarise(
+    avg_new_applications = mean(monthly_new_applications, na.rm=TRUE),
+    avg_eligibility_determination = mean(monthly_eligibility_determination, na.rm=TRUE),
+    avg_enrollments = mean(monthly_enrollments, na.rm=TRUE)
+  ) |>
+  ggplot(aes(x=year)) +
+  geom_line(aes(y=avg_new_applications, color="Total New Applications")) +
+  geom_line(aes(y=avg_eligibility_determination, color="Total Eligibility Determinations")) +
+  geom_line(aes(y=avg_enrollments, color="Total Enrollments")) +
+  scale_y_continuous(labels = function(x) paste0(x / 1e6, "M")) +
+  labs(
+    x = "Year",
+    y = "Count (Millions)",
+    title = "National Average Medicaid/CHIP Applications, Determinations, and Enrollments by Year",
+    color = "Legend"
+  )
+```
+
+#https://www.kff.org/medicaid/medicaid-enrollment-and-unwinding-tracker/
+
+Note: During COVID, the federal government implemented the Continuous Enrollment Provision (starting March 2020) , States could not dis enroll people from Medicaid, Even if income changed or paperwork wasn’t updated.
+
+Fewer people needed to submit new applications
+
+Determinations dip early COVID, then spike later (2023–2024) (this could be unwinding period)
+States had to reprocess massive backlogs
+Tons of eligibility determinations happened all at once
+So the post-COVID spike is basically administrative catch-up
+
+
+#Average Medicaid/CHIP Enrollment per state by year
+
+```{r}
+#By using mean() directly on the raw data (which likely has multiple states and months per year), we are getting the average per observation rather than the national average. 
 medicaid_chip |> 
   group_by(year) |> 
-  summarise(total_new_applications = sum(total_applications_for_financial_assistance_submitted_at_state_level,na.rm= TRUE),total_eligibility_determination = sum(total_medicaid_and_chip_determinations, na.rm=TRUE), total_enrollments= sum(total_medicaid_and_chip_enrollment, na.rm=TRUE)) |>
-  ggplot(mapping=aes(x=year))+
-  geom_line(aes(y=total_new_applications, color="total number of new applications")) +
-  geom_line(aes(y=total_eligibility_determination, color="total number of  eligibility determinations")) + 
-  #geom_line(aes(y=total_enrollments, color="total number of enrollments"))+
+  summarise( avg_enrollments= mean(total_medicaid_and_chip_enrollment, na.rm=TRUE)) |>
+  ggplot(mapping=aes(x=year,y=avg_enrollments))+
+  geom_line(color="blue")+
+  scale_y_continuous(labels = function(x) paste0(x / 1e6, "M")
+  ) +
  labs(
     x = "year",
-    y = "Total Number",
-    title = "Total New Applications/Determinations by year"
+    y = "Average Enrollment (Millions)",
+    title = "Average monthly Medicaid/CHIP Enrollment per state by Year"
   ) 
-                     
+                   
 ```
+
+
+#National Average Annual Medicaid/CHIP Enrollment
+
+```{r}
+medicaid_chip |>
+  group_by(year, reporting_period) |>
+  summarise(
+    monthly_national_enrollment =
+      sum(total_medicaid_and_chip_enrollment, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(year) |>
+  summarise(
+    total_annual_enrollment =
+      mean(monthly_national_enrollment, na.rm = TRUE)) |>
+  ggplot(aes(x = year, y = total_annual_enrollment)) +
+  geom_line(color = "blue") +
+  scale_y_continuous(
+    labels = function(x) paste0(x / 1e6, "M")
+  ) +
+  labs(
+    x = "Year",
+    y = "Total Enrollment (Millions)",
+    title = "Average Annual Medicaid/CHIP Enrollment"
+  )
+
+```
+
+
+# Create the Covid time phase
 
 ```{r}
 
@@ -36,34 +114,62 @@ medicaid_chip <- medicaid_chip |>
   mutate(
  time_phase =  case_when(
     reporting_period < ymd("2020-03-01")  ~ "Pre Covid",
-    between(ymd(reporting_period), ymd("2020-03-01"), ymd("2023-05-01")) ~ "Covid period",
-    reporting_period > ymd("2023-05-01") ~ "Post Covid"
+    between(ymd(reporting_period), ymd("2020-03-01"), ymd("2023-03-31")) ~ "Covid period",
+    reporting_period >= ymd("2023-04-01") ~ "Post Covid"
   ) 
 ) 
 
 sum(is.na(medicaid_chip$time_phase))
 
 ```
+The Medicaid continuous enrollment condition ended on March 31, 2023, as part of the Consolidated Appropriations Act of 2023. This action, which was part of the Families First Coronavirus Response Act (FFCRA) and continued through the Consolidated Appropriations Act of 2023, allowed states to begin resuming Medicaid and CHIP eligibility renewals and disenrolling ineligible individuals. 
+
 
 ```{r}
 glimpse(medicaid_chip)
 ```
 
 
+
+
+
 ```{r}
 medicaid_chip |> 
-  group_by(time_phase) |> 
-  summarise(total_new_applications = mean(total_applications_for_financial_assistance_submitted_at_state_level,na.rm= TRUE)) |>
-  arrange(time_phase) |> 
-  mutate(time_phase = factor(time_phase, levels = c("Pre Covid", "Covid period", "Post Covid"), ordered = TRUE))  |> 
-  ggplot(mapping=aes(x= time_phase,y=total_new_applications, group=1))+
-  geom_line(color = "blue") +
+  group_by(time_phase, reporting_period) |>
+  summarise(
+    monthly_total_new_applications = sum(total_applications_for_financial_assistance_submitted_at_state_level, na.rm = TRUE),
+    monthly_eligibility_determination = sum(total_medicaid_and_chip_determinations, na.rm=TRUE),
+    monthly_enrollments = sum(total_medicaid_and_chip_enrollment, na.rm=TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(time_phase) |>
+  summarise(
+    avg_monthly_new_applications = mean(monthly_total_new_applications, na.rm = TRUE),
+    avg_eligibility_determination = mean(monthly_eligibility_determination, na.rm=TRUE),
+    avg_enrollments = mean(monthly_enrollments, na.rm=TRUE)
+  ) |>
+  mutate(time_phase = factor(time_phase, levels = c("Pre Covid", "Covid period", "Post Covid"), ordered = TRUE)) |> #this tells which period come first
+  ggplot(aes(x=time_phase, y=avg_monthly_new_applications, group=1)) + #group=1 is needed because it treats x-axis as a single
+  geom_line(aes(y=avg_monthly_new_applications, color="Total New Applications")) +
+  geom_line(aes(y=avg_eligibility_determination, color="Total Eligibility Determinations")) +
+  geom_line(aes(y=avg_enrollments, color="Total Enrollments")) +
+  scale_y_continuous(labels = function(x) paste0(x / 1e6, "M")) +
   labs(
-    x = "Time Phase",
-    y = "Total New Applications",
-    title = "Total New Medicaid/CHIP Applications by Time Phase"
-  ) 
+    x="Time Phase",
+    y="Average Monthly New Applications",
+    title="Average Monthly Medicaid/CHIP Applications by Time Phase (National)"
+  )
 ```
+
+Even though the COVID period is longer in calendar time, the monthly intensity of applications dropped because:
+fewer renewals
+fewer eligibility changes
+people staying continuously enrolled
+
+Average monthly Medicaid/CHIP application volume declined during the COVID-19 period relative to the pre-COVID baseline, followed by a sharp increase in the post-COVID period. The reduction during COVID reflects federal continuous enrollment policies that limited disenrollment and renewal activity, thereby reducing the need for new or repeat applications despite sustained enrollment. Following the end of continuous enrollment requirements, average monthly applications rose substantially, consistent with eligibility redetermination backlogs and increased administrative churn during the unwinding period.
+
+The unusually high enrollments during COVID were driven by continuous enrollment protections, not by an increase in new applications. When you compare “enrollments” to “new applications” or “eligibility determinations,” it’s expected to see enrollments dominate by orders of magnitude.
+
 
 
 #Check the processing times
@@ -80,5 +186,9 @@ medicaid_chip |>
     y = "processing times",
     title = "total medicaid and chip determinations processed in less than 24 hours"
   ) 
+```
+
+```{r}
+str(medicaid_chip$reporting_period)
 ```
 
