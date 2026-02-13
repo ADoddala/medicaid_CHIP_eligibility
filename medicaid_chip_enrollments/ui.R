@@ -24,13 +24,46 @@ ui <- fluidPage(
                                 distinct(state_name) |> 
                                 pull() |> 
                                 sort())
+      ),
+      
+      selectInput("time_phase",
+                  "Select Time Phase:",
+                  choices = c("All time Periods", medicaid_chip |>  
+                                distinct(time_phase) |> 
+                                pull() |> 
+                                sort())
+                  
+                  
       )
+      
     ),
     
     # Show a plot of the generated distribution
+    
     mainPanel(
-      plotOutput("linePlot"),
-      plotOutput("barPlot")
+      tabsetPanel(
+        tabPanel(
+          "Line Plot",
+          plotOutput("linePlot", height = "500px")
+        ),
+        
+        tabPanel(
+          "Bar Plot",
+          plotOutput("barPlot", height = "500px")
+        ),
+        
+        tabPanel(
+          "Stacked Bar Plot",
+          plotOutput("stackedbarPlot", height="500px")
+        ),
+        tabPanel(
+          "seasonal Trend linePlot",
+          plotOutput("seasonalTrendlinePlot", height="500px")
+        )
+        
+      )
     )
   )
 )
+
+
