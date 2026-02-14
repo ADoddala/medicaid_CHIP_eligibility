@@ -14,7 +14,7 @@
 
 function(input, output, session) {
   
-  # Medicaid/ CHIP applications , eligibility determinations, enrollments over the time
+  # Medicaid/ CHIP  enrollments over the time
   output$linePlot <- renderPlot({
     plot_data <-  if(input$state_name!= "National"){
       medicaid_chip |> 
@@ -26,8 +26,6 @@ function(input, output, session) {
     plot_data <- plot_data |> 
       group_by(reporting_period) |> 
       summarise( total_enrollments= sum(total_medicaid_and_chip_enrollment, na.rm=TRUE),
-                 total_new_applications = sum(total_applications_for_financial_assistance_submitted_at_state_level, na.rm=TRUE),
-                 total_eligibility_determination = sum(total_medicaid_and_chip_determinations, na.rm=TRUE),
                  .groups = "drop" 
       ) 
     
@@ -38,12 +36,9 @@ function(input, output, session) {
       paste("Medicaid/CHIP enrollment :" , input$state_name)
     }
     plot_data |> 
-      ggplot(aes(x=reporting_period)) +
-      geom_line(aes(y=total_new_applications, color="Total New Applications")) +
-      geom_line(aes(y=total_eligibility_determination, color="Total Eligibility Determinations")) +
-      geom_line(aes(y=total_enrollments, color="Total Enrollments")) +
-      
-      #geom_line(color = "blue") +
+      ggplot(aes(x=reporting_period,y=total_enrollments)) +
+      #geom_line(aes(y=total_enrollments, color="Total Enrollments")) +
+      geom_line(color = "blue") +
       scale_y_continuous(
         labels = function(x) paste0(x / 1e6, "M")
       ) +
@@ -54,6 +49,43 @@ function(input, output, session) {
       )
   })
   
+  
+  # Medicaid/ CHIP applications , eligibility determinations over the time
+  output$lineappPlot <- renderPlot({
+    plot_data <-  if(input$state_name!= "National"){
+      medicaid_chip |> 
+        filter(state_name == input$state_name)
+    } else
+    {
+      medicaid_chip
+    }
+    plot_data <- plot_data |> 
+      group_by(reporting_period) |> 
+      summarise(total_new_applications = sum(total_applications_for_financial_assistance_submitted_at_state_level, na.rm=TRUE),
+                 total_eligibility_determination = sum(total_medicaid_and_chip_determinations, na.rm=TRUE),
+                 .groups = "drop" 
+      ) 
+    
+    title <- if(input$state_name == "National"){
+      "National Medicaid/CHIP applications vs eligibilty Determinations"
+    }else
+    {
+      paste("Medicaid/CHIP enrollment applications vs eligibilty Determinations :" , input$state_name)
+    }
+    plot_data |> 
+      ggplot(aes(x=reporting_period)) +
+      geom_line(aes(y=total_new_applications, color="Total New Applications")) +
+      geom_line(aes(y=total_eligibility_determination, color="Total Eligibility Determinations")) +
+      
+      scale_y_continuous(
+        labels = function(x) paste0(x / 1e6, "M")
+      ) +
+      labs(
+        x = "Year",
+        y = "Total Count (Millions)",
+        title = title
+      )
+  })
   
   
   
@@ -84,7 +116,7 @@ function(input, output, session) {
       mutate(time_phase = factor(time_phase, levels = c("Pre Covid", "Covid period", "Post Covid"), ordered = TRUE)) |>
       
       ggplot(aes(x = time_phase, y = monthly_total_enrollments)) +
-      geom_col(fill = "#ea7270") +
+      geom_col(fill = "#2a9d8f") +
       scale_y_continuous(
         labels = function(x) paste0(x / 1e6, "M")
       ) +
@@ -154,10 +186,10 @@ function(input, output, session) {
         
       ) 
     title <- if(input$state_name == "National"){
-      "National Distribution of Processing times"
+      "National Distribution of Eligibility Determination Processing times"
     }else
     {
-      paste("Distribution of processing times :" , input$state_name)
+      paste("Distribution of Eligibility Determination processing times :" , input$state_name)
     }
     plot_data |> 
       mutate(time_phase = factor(time_phase, levels = c("Pre Covid", "Covid period", "Post Covid"), ordered = TRUE)) |> #this tells which period come first
@@ -220,7 +252,7 @@ function(input, output, session) {
     }
     plot_data |> 
       ggplot(aes(x=month_name, y=avg_enrollments, group=1)) +
-      geom_line(color="#ea7270") +
+      geom_line(color="#2a9d8f") +
       scale_y_continuous(
         labels = function(x) paste0(x / 1e6, "M")
       ) +

@@ -10,7 +10,7 @@
 
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
+fluidPage(
   
   # Application title
   titlePanel("Impact of COVID-19 on Medicaid and CHIP enrollments"),
@@ -44,7 +44,8 @@ ui <- fluidPage(
       tabsetPanel(
         tabPanel(
           "Line Plot",
-          plotOutput("linePlot", height = "500px")
+          plotOutput("linePlot",width = "750px"),
+          plotOutput("lineappPlot",width = "900px")
         ),
         
         tabPanel(

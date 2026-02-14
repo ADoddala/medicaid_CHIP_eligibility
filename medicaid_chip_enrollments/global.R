@@ -4,7 +4,7 @@ library(lubridate)
 library(scales)
 library(glue)
 
-medicaid_chip <- read_csv("../data/medicaid_chip.csv")
+medicaid_chip <- read_csv("./medicaid_chip.csv")
 
 medicaid_chip <- medicaid_chip |> 
   mutate(
