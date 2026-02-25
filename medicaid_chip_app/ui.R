@@ -43,22 +43,22 @@ fluidPage(
     mainPanel(
       tabsetPanel(
         tabPanel(
-          "Line Plot",
+          "Enrollment Trends Plot",
           plotOutput("linePlot",width = "750px"),
           plotOutput("lineappPlot",width = "900px")
         ),
         
         tabPanel(
-          "Bar Plot",
+          "Enrollment Across Time Phases",
           plotOutput("barPlot", height = "500px")
         ),
         
         tabPanel(
-          "Stacked Bar Plot",
+          "Processing Times Plot",
           plotOutput("stackedbarPlot", height="500px")
         ),
         tabPanel(
-          "seasonal Trend linePlot",
+          "Seasonal Trends Line Plot",
           plotOutput("seasonalTrendlinePlot", height="500px")
         )
         

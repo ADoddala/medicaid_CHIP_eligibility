@@ -46,6 +46,11 @@ function(input, output, session) {
         x = "Year",
         y = "Total Enrollment (Millions)",
         title = title
+      )+
+      theme(
+        plot.title = element_text(size=20),  #increase plot title size
+        axis.title = element_text(size=16),  #Increase axis labels size
+        axis.text = element_text(size=14)    #Increase axis tick text size
       )
   })
   
@@ -84,6 +89,12 @@ function(input, output, session) {
         x = "Year",
         y = "Total Count (Millions)",
         title = title
+      )+
+      theme(
+        plot.title = element_text(size=20),  #increase plot title size
+        axis.title = element_text(size=16),  #Increase axis labels size
+        axis.text = element_text(size=14) , #Increase axis tick text size
+        legend.text = element_text(size = 14)
       )
   })
   
@@ -124,6 +135,11 @@ function(input, output, session) {
         x = "Time Phase",
         y = "Total Enrollment (Millions)",
         title = title
+      )+
+      theme(
+        plot.title = element_text(size=20),  #increase plot title size
+        axis.title = element_text(size=16),  #Increase axis labels size
+        axis.text = element_text(size=14)    #Increase axis tick text size
       )
     
   })
@@ -200,6 +216,12 @@ function(input, output, session) {
         x="Time Phase",
         y="share of eligibilty Determination",
         title=title
+      )+
+      theme(
+        plot.title = element_text(size=20),  #increase plot title size
+        axis.title = element_text(size=16),  #Increase axis labels size
+        axis.text = element_text(size=14),    #Increase axis tick text size
+        legend.text = element_text(size = 14)  #Increase legend text size
       )
     
   })
@@ -260,6 +282,11 @@ function(input, output, session) {
         x = "Month",
         y = "Average Monthly  Enrollment (Millions)",
         title = title
+      )+
+      theme(
+        plot.title = element_text(size=20),  #increase plot title size
+        axis.title = element_text(size=16),  #Increase axis labels size
+        axis.text = element_text(size=12)    #Increase axis tick text size
       )
   })
   
