@@ -1,18 +1,18 @@
 
 # Analysis of the impact of Covid-19 on medicaid CHIP Enrollments
-***
+
 
 
 
 ## Motivation
-***
+
 
 
 I chose this Project because Medicaid and CHIP help many people get health insurance especially with low income. It’s important to understand how many people apply and enroll in these programs, and how this changes to over time. Events like COVID-19 pandemic may have affected enrollment, and different states may have different results. By studying this data, we can learn more about how well these programs are working and where improvements might needed .
 
 
 ## Purpose
-***
+
 
 
 The Purpose of this Project is to discover the trends of  medicaid and CHIP(children's Health Insurance Program) applications, eligibility determinations and enrollments over time and primarily answer the following questions:
@@ -23,7 +23,7 @@ The Purpose of this Project is to discover the trends of  medicaid and CHIP(chil
 
 
 ## Data 
-***
+
 
 
 The primary data set https://data.medicaid.gov/dataset/6165f45b-ca93-5bb5-9d06-db29c692a360 used in this project is State Medicaid and CHIP Applications, Eligibility Determinations, and Enrollment Data provided by the centers for Medicare and Medicaid Services (CMS). 
@@ -40,7 +40,7 @@ Prior to cleaning data set includes 10K+ records but after cleaning data set inc
 
 
 ## App Demo
-***
+
 
 
 Live Version available at: https://adoddala.shinyapps.io/medicaid_chip_enrollments/. 
@@ -55,7 +55,7 @@ The graph at above link consists of five plots.
 
    
 ## Data insights
-***
+
 
 
 
